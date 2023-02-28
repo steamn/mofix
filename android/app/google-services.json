@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "742269755641",
+    "project_id": "mommys2-88131",
+    "storage_bucket": "mommys2-88131.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742269755641:android:6dd6442e39d440b235c228",
+        "android_client_info": {
+          "package_name": "com.mommys"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "742269755641-8tpk5t62seqimjdgrlohhopqp042s4he.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "11111"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "742269755641-8tpk5t62seqimjdgrlohhopqp042s4he.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
