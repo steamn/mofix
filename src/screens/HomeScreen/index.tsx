@@ -11,6 +11,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdvertBlock from 'atoms/AdvertBlock';
 import NewsBlock from 'atoms/NewsBlock';
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 
 import {ThemeType} from 'context/types';
 import useTheme from 'hooks/useTheme';
@@ -52,8 +53,10 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
     if (loading) return;
     setLoading(true);
     const res = await axios.get(`${baseUrl}news?page=${currentPage}`);
+
     setData([...data, ...res.data.data]);
     setCurrentPage(currentPage + 1);
+
 
     setLoading(false);
   }
@@ -87,6 +90,7 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
           style={{
             height: 255,
             width: '100%',
+
           }}>
           <View style={style.advertWrapper}>
             {promoStore.promoList.map(item => {
@@ -114,7 +118,7 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
   };
 
   return (
-    <View style={style.container}>
+    <SafeAreaView style={style.container}>
       <Pressable
         style={style.settings}
         onPress={() => navigation.navigate('Settings')}>
@@ -150,7 +154,7 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
         onEndReached={loadApi}
         onEndReachedThreshold={0.1}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

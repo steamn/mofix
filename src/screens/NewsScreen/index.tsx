@@ -7,6 +7,8 @@ import {
   useWindowDimensions,
   View,
   StatusBar,
+    ActivityIndicator,
+  Platform
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -72,6 +74,8 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
 
   const [newsContent, setNewsContent] = useState<INews | undefined>(undefined);
   const [promoContent, setPromoContent] = useState<IPromo | null>(null);
+  const [ loader, setLoader ] = React.useState<boolean>(true);
+
 
   useEffect(() => {
     setNewsContent(newsStore.newsItem);
@@ -80,6 +84,17 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
   useEffect(() => {
     setPromoContent(promoStore.promoItem);
   }, [promoStore.promoItem]);
+
+  useEffect(() => {
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      setTimeout(function(){
+        setLoader(false)
+      }, 1500)
+    });
+
+  }, [promoContent?.image]);
+
 
   function WebDisplay({html}) {
     const {width: contentWidth} = useWindowDimensions();
@@ -97,19 +112,30 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
     day: 'numeric',
   };
 
+
+  if(loader)
+  {
+    return (
+      <View style={style.loader}>
+        <ActivityIndicator size="large" color={theme?.colors?.light_grey} />
+      </View>
+    )
+  }
+
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={style.container}>
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar translucent={true} hidden={false} backgroundColor="transparent" barStyle={'dark-content'}   />
+
       <View style={style.imgWrapper}>
         <Image
-          source={{
-            uri:
-              helperStore.newsOrPromoType === 'news'
-                ? `https://pqdev.ru/storage/${newsContent?.image}`
-                : `https://pqdev.ru/storage/${promoContent?.image}`,
-          }}
-          style={style.img}
-          resizeMode="cover"
+            source={{
+              uri:
+                  helperStore.newsOrPromoType === 'news'
+                      ? `https://pqdev.ru/storage/${newsContent?.image}`
+                      : `https://pqdev.ru/storage/${promoContent?.image}`,
+            }}
+            style={style.img}
+            resizeMode="cover"
         />
       </View>
       <Pressable
@@ -149,6 +175,10 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
           }
         />
       </View>
+
+
+
+
     </ScrollView>
   );
 };
@@ -160,15 +190,18 @@ const styles = (theme: ThemeType | null) =>
     container: {
       flex: 1,
       backgroundColor: theme?.colors?.background,
+      // position:'absolute',
+      // top:-200,
+      // left: 0
     },
     imgWrapper: {
       width: '100%',
       height: 250,
-      marginBottom: -10,
+      // marginBottom: -10,
     },
     arrow: {
       position: 'absolute',
-      top: 20,
+      top: Platform.OS === 'ios' ? 56 : 56,
       left: 30,
     },
     img: {
@@ -201,5 +234,19 @@ const styles = (theme: ThemeType | null) =>
       lineHeight: 22,
       marginBottom: 20,
       color: theme?.colors?.text_gray,
+
     },
+
+    loader: {
+      width:'100%',
+      height:'100%',
+      justifyContent:'center',
+      alignItems:'center',
+      position:'absolute',
+      bottom:0,
+      left:0,
+      zIndex:9999,
+      backgroundColor:'white'
+    },
+
   });

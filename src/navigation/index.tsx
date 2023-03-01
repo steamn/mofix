@@ -1,5 +1,5 @@
 import React, {useEffect, useContext} from 'react';
-import {SafeAreaView, StatusBar} from 'react-native';
+import {Platform, SafeAreaView, StatusBar, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {HomeStack} from './HomeStack';
@@ -43,10 +43,8 @@ const Routes = () => {
   }, [geoPositionStore.cityIsChanged]);
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
-      {/* <StatusBar
-        barStyle={!theme?.isLightTheme ? 'light-content' : 'dark-content'}
-      /> */}
+    <View style={{flex: 1, backgroundColor: 'white'}}>
+
       <NavigationContainer>
         {partnersStore.Loading ? (
           <Stack.Navigator>
@@ -82,7 +80,7 @@ const Routes = () => {
               tabBarActiveTintColor: theme?.colors?.background_form,
               tabBarInactiveTintColor: theme?.colors?.background_inact,
               tabBarStyle: {
-                height: 45,
+                height: Platform.OS === 'ios' ? 70 : 45,
                 paddingTop: 5,
               },
               tabBarHideOnKeyboard: true,
@@ -94,7 +92,7 @@ const Routes = () => {
           </Tab.Navigator>
         )}
       </NavigationContainer>
-    </SafeAreaView>
+    </View>
   );
 };
 
