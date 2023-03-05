@@ -8,7 +8,9 @@ import {
   View,
   StatusBar,
     ActivityIndicator,
-  Platform
+    Platform,
+    Dimensions,
+  Animated
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -24,6 +26,9 @@ import {IPromo} from 'src/models/promo';
 import {HomeNavigatorParamsList} from 'nav/types';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import RenderHtml from 'react-native-render-html';
+
+
+
 
 export interface NavScreenProps {
   navigation: NativeStackNavigationProp<HomeNavigatorParamsList, 'News'>;
@@ -75,6 +80,8 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
   const [newsContent, setNewsContent] = useState<INews | undefined>(undefined);
   const [promoContent, setPromoContent] = useState<IPromo | null>(null);
   const [ loader, setLoader ] = React.useState<boolean>(true);
+  const [ dark_theme_by_scroll, setDarkThemeByScroll ] = React.useState<boolean>(false);
+  const [scrollY] = useState(new Animated.Value(0));
 
 
   useEffect(() => {
@@ -113,6 +120,8 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
   };
 
 
+
+
   if(loader)
   {
     return (
@@ -122,24 +131,61 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
     )
   }
 
+
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const handleScroll = Animated.event([
+      { nativeEvent: { contentOffset: { y: scrollY } }
+      }],
+      {
+        useNativeDriver: false,
+        listener: (event) => {
+          const offsetY = event.nativeEvent.contentOffset.y
+            setDarkThemeByScroll(offsetY >= 56)
+          // do something special
+        },
+      });
+
+
   return (
 
       <View style={{width: '100%', flex:1}}>
-        <Pressable
-            onPress={() => {
-              setNewsContent(undefined);
-              setPromoContent(null);
-              navigation.goBack();
-            }}
-            style={style.arrow}>
-          <AntDesign
-              name="arrowleft"
-              color={theme?.colors?.background_form}
-              size={35}
-          />
-        </Pressable>
-        <ScrollView showsVerticalScrollIndicator={false} style={style.container}>
-          <StatusBar translucent={true} hidden={false} backgroundColor="transparent" barStyle={'dark-content'}   />
+
+        <Animated.View style={[style.header, { opacity: headerOpacity }]} >
+        </Animated.View>
+
+          <Pressable
+              onPress={() => {
+                setNewsContent(undefined);
+                setPromoContent(null);
+                navigation.goBack();
+              }}
+              style={style.arrow}
+          >
+
+            <AntDesign
+                name="arrowleft"
+                color={theme?.colors?.background_form}
+                size={35}
+            />
+
+          </Pressable>
+
+        {/*</Animated.View>*/}
+
+
+        <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={style.container}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+        >
+          <StatusBar translucent={true} hidden={false} backgroundColor="transparent" barStyle={dark_theme_by_scroll ? 'dark-content' : 'light-content'}   />
 
           <View style={style.imgWrapper}>
             <Image
@@ -193,6 +239,8 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
 
 export default observer(NewsScreen);
 
+const SCREEN_WIDTH = Dimensions.get('window').width
+
 const styles = (theme: ThemeType | null) =>
   StyleSheet.create({
     container: {
@@ -211,7 +259,8 @@ const styles = (theme: ThemeType | null) =>
       position: 'absolute',
       top: Platform.OS === 'ios' ? 56 : 56,
       left: 30,
-      zIndex:9999
+      zIndex:9999,
+      height: 100
     },
     img: {
       width: '100%',
@@ -257,5 +306,29 @@ const styles = (theme: ThemeType | null) =>
       zIndex:9999,
       backgroundColor:'white'
     },
+
+    white_background:{
+      backgroundColor:'white',
+      top:0,
+      left: 0,
+      width: SCREEN_WIDTH,
+      height: 100,
+      paddingTop: Platform.OS === 'ios' ? 56 : 56,
+      paddingLeft: 30,
+      // borderBottomColor:'silver',
+      // borderBottomWidth:1
+    },
+
+    header: {
+      position:'absolute',
+      top:0,
+      left: 0,
+      width: SCREEN_WIDTH,
+      height: 100,
+      paddingTop: Platform.OS === 'ios' ? 56 : 56,
+      paddingLeft: 30,
+      backgroundColor:'white',
+      zIndex:10
+    }
 
   });
