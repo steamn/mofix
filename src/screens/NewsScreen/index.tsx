@@ -123,63 +123,71 @@ const NewsScreen: React.FC<NavScreenProps> = ({navigation}) => {
   }
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={style.container}>
-      <StatusBar translucent={true} hidden={false} backgroundColor="transparent" barStyle={'dark-content'}   />
 
-      <View style={style.imgWrapper}>
-        <Image
-            source={{
-              uri:
-                  helperStore.newsOrPromoType === 'news'
-                      ? `https://pqdev.ru/storage/${newsContent?.image}`
-                      : `https://pqdev.ru/storage/${promoContent?.image}`,
+      <View style={{width: '100%', flex:1}}>
+        <Pressable
+            onPress={() => {
+              setNewsContent(undefined);
+              setPromoContent(null);
+              navigation.goBack();
             }}
-            style={style.img}
-            resizeMode="cover"
-        />
+            style={style.arrow}>
+          <AntDesign
+              name="arrowleft"
+              color={theme?.colors?.background_form}
+              size={35}
+          />
+        </Pressable>
+        <ScrollView showsVerticalScrollIndicator={false} style={style.container}>
+          <StatusBar translucent={true} hidden={false} backgroundColor="transparent" barStyle={'dark-content'}   />
+
+          <View style={style.imgWrapper}>
+            <Image
+                source={{
+                  uri:
+                      helperStore.newsOrPromoType === 'news'
+                          // ? `https://pqdev.ru/storage/${newsContent?.image}`
+                          ? `https://pqdev.ru/${newsContent?.image}`
+                          : `https://pqdev.ru/storage/${promoContent?.image}`,
+                }}
+                style={style.img}
+                resizeMode="cover"
+            />
+          </View>
+
+
+          <View style={style.content}>
+            <Text style={style.title}>
+              {helperStore.newsOrPromoType === 'news'
+                  ? toJS(newsContent?.title)
+                  : toJS(promoContent?.title)}
+            </Text>
+            <Text style={style.date}>
+              {helperStore.newsOrPromoType === 'promo'
+                  ? new Date(promoContent?.promo_start).toLocaleString(
+                      'ru-RU',
+                      options,
+                  ) +
+                  ' - ' +
+                  new Date(promoContent?.promo_end).toLocaleString('ru-RU', options)
+                  : null}
+            </Text>
+            <WebDisplay
+                html={
+                  helperStore.newsOrPromoType === 'news'
+                      ? `${checkImg(newsContent?.content)}`
+                      : `${checkImg(promoContent?.content)}`
+                }
+            />
+          </View>
+
+
+
+
+        </ScrollView>
+
       </View>
-      <Pressable
-        onPress={() => {
-          setNewsContent(undefined);
-          setPromoContent(null);
-          navigation.goBack();
-        }}
-        style={style.arrow}>
-        <AntDesign
-          name="arrowleft"
-          color={theme?.colors?.background_form}
-          size={35}
-        />
-      </Pressable>
-      <View style={style.content}>
-        <Text style={style.title}>
-          {helperStore.newsOrPromoType === 'news'
-            ? toJS(newsContent?.title)
-            : toJS(promoContent?.title)}
-        </Text>
-        <Text style={style.date}>
-          {helperStore.newsOrPromoType === 'promo'
-            ? new Date(promoContent?.promo_start).toLocaleString(
-                'ru-RU',
-                options,
-              ) +
-              ' - ' +
-              new Date(promoContent?.promo_end).toLocaleString('ru-RU', options)
-            : null}
-        </Text>
-        <WebDisplay
-          html={
-            helperStore.newsOrPromoType === 'news'
-              ? `${checkImg(newsContent?.content)}`
-              : `${checkImg(promoContent?.content)}`
-          }
-        />
-      </View>
 
-
-
-
-    </ScrollView>
   );
 };
 
@@ -203,6 +211,7 @@ const styles = (theme: ThemeType | null) =>
       position: 'absolute',
       top: Platform.OS === 'ios' ? 56 : 56,
       left: 30,
+      zIndex:9999
     },
     img: {
       width: '100%',

@@ -1,17 +1,20 @@
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    RefreshControl
 } from 'react-native';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState,useCallback} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdvertBlock from 'atoms/AdvertBlock';
 import NewsBlock from 'atoms/NewsBlock';
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
+import {PullToRefreshView} from "react-native-smooth-pull-to-refresh";
 
 import {ThemeType} from 'context/types';
 import useTheme from 'hooks/useTheme';
@@ -23,6 +26,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {API_KEY} from '@env';
 import axios from 'axios';
 import {INews} from 'src/models/news';
+import settingsScreen from "screens/SettingsScreen";
 
 export interface NavScreenProps {
   navigation: NativeStackNavigationProp<HomeNavigatorParamsList, 'Home'>;
@@ -41,7 +45,29 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const [promoLoaded, setPromoLoaded] = useState(false);
 
-  const renderLoader = () => {
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = useCallback(async () => {
+
+      setRefreshing(true);
+      // setLoading(true);
+      setCurrentPage(1);
+      // setData([])
+      const res = await axios.get(`${baseUrl}news?page=1`);
+
+      setData(res.data.data);
+      setLoading(false);
+
+      promoStore.getPromoList();
+      newsStore.setNewsList(res.data.data);
+
+      setRefreshing(false);
+
+  }, []);
+
+
+
+    const renderLoader = () => {
     return loading ? (
       <View style={style.loader}>
         <ActivityIndicator size={'large'} color={theme?.colors?.light_grey} />
@@ -50,14 +76,13 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
   };
 
   async function loadApi() {
+
     if (loading) return;
     setLoading(true);
     const res = await axios.get(`${baseUrl}news?page=${currentPage}`);
 
     setData([...data, ...res.data.data]);
     setCurrentPage(currentPage + 1);
-
-
     setLoading(false);
   }
 
@@ -93,7 +118,7 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
 
           }}>
           <View style={style.advertWrapper}>
-            {promoStore.promoList.map(item => {
+            {promoStore.promoList.map((item,index) => {
               return (
                 <AdvertBlock
                   img={`https://pqdev.ru/storage/${item.image}`}
@@ -107,7 +132,7 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
                     helperStore.setPromoOrNewsType('promo');
                     navigation.navigate('News');
                   }}
-                  key={item.id}
+                  key={index}
                 />
               );
             })}
@@ -117,45 +142,55 @@ const HomeScreen: React.FC<NavScreenProps> = ({navigation}) => {
     );
   };
 
+
   return (
     <SafeAreaView style={style.container}>
-      <Pressable
-        style={style.settings}
-        onPress={() => navigation.navigate('Settings')}>
-        <Ionicons
-          name="person"
-          color={theme?.colors?.background_form}
-          size={30}
+        <Pressable
+            style={style.settings}
+            onPress={() => navigation.navigate('Settings')}>
+            <Ionicons
+                name="person"
+                color={theme?.colors?.background_form}
+                size={30}
+            />
+        </Pressable>
+
+        <FlatList
+            ListHeaderComponent={() => (
+                <View>
+                    {promoStore.promoList.length ? <Header /> : null}
+                    <Text style={style.blockTitle}>Новости</Text>
+                </View>
+            )}
+            showsVerticalScrollIndicator={false}
+            data={data}
+            style={style.newsList}
+            renderItem={({item}) => (
+                <NewsBlock
+                    img={`https://pqdev.ru/${item.image}`}
+                    desc={item.title}
+                    onpress={() => {
+                        newsStore.getNewsItem(+item.id);
+                        helperStore.setPromoOrNewsType('news');
+                        navigation.navigate('News');
+                    }}
+                />
+            )}
+            keyExtractor={item => item.id.toString()}
+            ListFooterComponent={renderLoader}
+            onEndReached={loadApi}
+            onEndReachedThreshold={0.1}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
         />
-      </Pressable>
-      <FlatList
-        ListHeaderComponent={() => (
-          <View>
-            {promoStore.promoList.length ? <Header /> : null}
-            <Text style={style.blockTitle}>Новости</Text>
-          </View>
-        )}
-        showsVerticalScrollIndicator={false}
-        data={data}
-        style={style.newsList}
-        renderItem={({item}) => (
-          <NewsBlock
-            img={`https://pqdev.ru/storage/${item.image}`}
-            desc={item.title}
-            onpress={() => {
-              newsStore.getNewsItem(+item.id);
-              helperStore.setPromoOrNewsType('news');
-              navigation.navigate('News');
-            }}
-          />
-        )}
-        keyExtractor={item => item.id.toString()}
-        ListFooterComponent={renderLoader}
-        onEndReached={loadApi}
-        onEndReachedThreshold={0.1}
-      />
+
     </SafeAreaView>
   );
+
+
+
+
 };
 
 export default observer(HomeScreen);
